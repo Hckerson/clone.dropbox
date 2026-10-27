@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useActionState } from "react";
-import { signUp } from "@/app/Auth/signUp";
+import { signUp } from "@/app/auth/signUp";
 import Link from "next/link";
 import { instrument_Sans } from "@/app/ui/fonts";
 import { useRouter } from "next/navigation";
@@ -56,10 +56,10 @@ export default function AuthForm({ type }: { type: string }) {
       }, 1500);
       return () => clearTimeout(timeoutId);
     }
-    if(state?.errors){
-      setLoader(false)
+    if (state?.errors) {
+      setLoader(false);
     }
-  },[state.message, state.errors, router] );
+  }, [state.message, state.errors, router]);
 
   return (
     <form
@@ -204,7 +204,7 @@ export default function AuthForm({ type }: { type: string }) {
             type="text"
             className={clsx(
               "mt-1 block w-full px-3 py-2 hover:bg-[#f7f5f2] hover:border-black    border border-slate-300 text-sm  placeholder-stone-400",
-              !status ? "text-black" : "text-stone-500"
+              !status ? "text-black" : "text-stone-500",
             )}
             autoFocus
             name="email"

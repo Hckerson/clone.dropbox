@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { login } from "@/app/Auth/login";
+import { login } from "@/app/auth/login";
 import Link from "next/link";
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
@@ -180,7 +180,7 @@ export default function AuthForm({ type }: { type: string }) {
             type="text"
             className={clsx(
               "mt-1 block w-full px-3 py-2 hover:bg-[#f7f5f2] hover:border-black    border border-slate-300 text-sm  placeholder-slate-400",
-              error && "border-red-500"
+              error && "border-red-500",
             )}
             autoFocus
             name="email"
@@ -257,8 +257,8 @@ export default function AuthForm({ type }: { type: string }) {
           <Link href="/en_GB/register">
             {" "}
             <p className="inline-flex items-center text-base font-medium group  underline underline-offset-2 decoration-1 hover:decoration-white transition-colors duration-200 decoration-stone-400">
-              {"Don't have an account"}, <span className="font-semibold text-base">Register
-                </span> 
+              {"Don't have an account"},{" "}
+              <span className="font-semibold text-base">Register</span>
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
