@@ -3,14 +3,14 @@ import { cookies } from "next/headers";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
 import { neon } from "@neondatabase/serverless";
 import { redirect } from "next/navigation";
-const secretKey = process.env.SESSION_SECRET;
-const encodedKey = new TextEncoder().encode(secretKey);
-const sql = neon(`${process.env.DATABASE_URL}`);
 
-if (!secretKey) {
-  throw new Error("SESSION KEY NOT DEFINED");
-}
+const secretKey = process.env.SESSION_SECRET;
+const encodedKey = secretKey ? new TextEncoder().encode(secretKey) : null;
+const sql = process.env.DATABASE_URL ? neon(`${process.env.DATABASE_URL}`) : null;
 export async function encrypt(payload: JWTPayload | undefined) {
+  if (!encodedKey) {
+    throw new Error("SESSION_SECRET environment variable is not set");
+  }
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -19,11 +19,17 @@ export async function encrypt(payload: JWTPayload | undefined) {
 }
 
 export async function decrypt(session: string | undefined = "") {
+  if (!encodedKey) {
+    return { error: "DATABASE_ERROR" };
+  }
   try {
     const { payload } = await jwtVerify(session, encodedKey, {
       algorithms: ["HS256"],
       clockTolerance: 15,
     });
+    if (!sql) {
+      return { error: "DATABASE_ERROR" };
+    }
     const result = await sql(
       `SELECT * FROM sessions WHERE id = $1 AND expires_at > NOW()`,
       [payload.sessionId]
@@ -42,6 +48,9 @@ export async function decrypt(session: string | undefined = "") {
 }
 
 export async function createSession(userId: string) {
+  if (!sql) {
+    throw new Error("DATABASE_URL environment variable is not set");
+  }
   const expiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
   const data = await sql(
     `
@@ -64,6 +73,9 @@ export async function createSession(userId: string) {
 }
 
 export async function updateSession() {
+  if (!sql) {
+    throw new Error("DATABASE_URL environment variable is not set");
+  }
   const session = (await cookies()).get("session")?.value;
   const payload = await decrypt(session);
   if (!session || !payload) {
@@ -94,6 +106,9 @@ export async function updateSession() {
 }
 
 export async function deleteSession() {
+  if (!sql) {
+    throw new Error("DATABASE_URL environment variable is not set");
+  }
   const cookieStore = await cookies();
   const session = cookieStore.get("session")?.value;
   const payload = await decrypt(session);

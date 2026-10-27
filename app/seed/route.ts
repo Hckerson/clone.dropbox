@@ -1,13 +1,17 @@
+import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
 
-const sql = neon(`${process.env.DATABASE_URL}`, {
-  fetchOptions: {
-    timeout: 10000,
-  },
-});
-import "dotenv/config";
+const sql = process.env.DATABASE_URL
+  ? neon(`${process.env.DATABASE_URL}`, {
+      fetchOptions: {
+        timeout: 10000,
+      },
+    })
+  : null;
+
 async function seedUsers() {
-  await sql(`DROP TABLE IF EXISTS users CASCADE`)
+  if (!sql) return;
+  await sql(`DROP TABLE IF EXISTS users CASCADE`);
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await sql`
     CREATE TABLE IF NOT EXISTS users (
@@ -22,6 +26,7 @@ async function seedUsers() {
 }
 
 async function seedSession() {
+  if (!sql) return;
   await sql(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
   await sql(`
     CREATE TABLE IF NOT EXISTS sessions (
@@ -32,10 +37,17 @@ async function seedSession() {
 }
 
 export async function GET() {
+  if (!sql) {
+    return Response.json(
+      { error: "DATABASE_URL environment variable is not set" },
+      { status: 500 }
+    );
+  }
+
   try {
     await sql`BEGIN`;
     await seedUsers();
-    await seedSession()
+    await seedSession();
     await sql`COMMIT`;
 
     return Response.json({ message: "Database seeded successfully" });
