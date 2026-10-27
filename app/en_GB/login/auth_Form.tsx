@@ -1,50 +1,34 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { login } from "@/app/auth/login";
+import React, { useState } from "react";
 import Link from "next/link";
-import { useActionState } from "react";
-import { useRouter } from "next/navigation";
-import { State } from "@/app/lib/definitions";
 import CircleLoader from "react-spinners/CircleLoader";
 import clsx from "clsx";
 
 export default function AuthForm({ type }: { type: string }) {
-  const router = useRouter();
-  const initialState: State = { message: null, errors: {} };
-  const [state, formAction] = useActionState(login, initialState);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<boolean | string>("");
-  const [error, setError] = useState("");
   const [loader, setLoader] = useState(false);
 
-  const handleClick = async () => {
+  const handleClick = () => {
     setLoader(true);
-    try {
-      const response = await axios.post("/api/validate", { email });
-      const status = response.data.success;
-      if (status) {
-        setLoader(false);
-      } else {
-        setError(response.data.error);
-        setLoader(false);
-      }
-      setStatus(status);
-    } catch (error) {
-      console.log(error);
-    }
+    setTimeout(() => {
+      setLoader(false);
+      setStatus(true);
+    }, 1000);
   };
 
-  useEffect(() => {
-    setLoader(false);
-    if (state?.message === "success") {
-      router.push("/dashboard");
-    }
-  }, [state, router]);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoader(true);
+    setTimeout(() => {
+      setLoader(false);
+      window.location.href = "/dashboard";
+    }, 1000);
+  };
 
   return (
     <form
-      action={formAction}
+      onSubmit={handleSubmit}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
@@ -178,10 +162,7 @@ export default function AuthForm({ type }: { type: string }) {
           </span>
           <input
             type="text"
-            className={clsx(
-              "mt-1 block w-full px-3 py-2 hover:bg-[#f7f5f2] hover:border-black    border border-slate-300 text-sm  placeholder-slate-400",
-              error && "border-red-500",
-            )}
+            className="mt-1 block w-full px-3 py-2 hover:bg-[#f7f5f2] hover:border-black    border border-slate-300 text-sm  placeholder-slate-400"
             autoFocus
             name="email"
             value={email}
@@ -189,16 +170,6 @@ export default function AuthForm({ type }: { type: string }) {
               setEmail(e.target.value);
             }}
           />
-          {state?.errors?.email &&
-            state.errors.email.map((error) => {
-              return (
-                <p key={error} className="text-xs text-red-500 text-start">
-                  {" "}
-                  {error}
-                </p>
-              );
-            })}
-          {error && <p className="text-red-500 text-xs text-start">{error}</p>}
         </label>
 
         {status && (
@@ -212,15 +183,6 @@ export default function AuthForm({ type }: { type: string }) {
               autoFocus
               name="password"
             />
-            {state?.errors?.password &&
-              state.errors.password.map((error) => {
-                return (
-                  <p key={error} className="text-xs text-red-500 text-start">
-                    {" "}
-                    {error}
-                  </p>
-                );
-              })}
           </label>
         )}
         {!status && (
@@ -239,9 +201,6 @@ export default function AuthForm({ type }: { type: string }) {
           <button
             type="submit"
             className="w-full p-3 flex justify-center rounded-xl bg-[#0061fe] text-white"
-            onClick={() => {
-              setLoader(true);
-            }}
           >
             {loader ? (
               <CircleLoader color="white" loading={loader} size={27} />
@@ -249,9 +208,6 @@ export default function AuthForm({ type }: { type: string }) {
               "Log in"
             )}
           </button>
-        )}
-        {state?.message && (
-          <p className="text-xs text-red-500 ">{state.message}</p>
         )}
         <div className="w-full ">
           <Link href="/en_GB/register">

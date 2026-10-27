@@ -1,29 +1,13 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useActionState } from "react";
-import { signUp } from "@/app/auth/signUp";
+import React, { useState } from "react";
 import Link from "next/link";
 import { instrument_Sans } from "@/app/ui/fonts";
-import { useRouter } from "next/navigation";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 import CircleLoader from "react-spinners/CircleLoader";
 import clsx from "clsx";
 
-export type State = {
-  errors?: {
-    email?: string[];
-    password?: string[];
-    firstname?: string[];
-    lastname?: string[];
-  };
-  message?: string | null;
-};
-
 export default function AuthForm({ type }: { type: string }) {
-  const router = useRouter();
   const [status, setStatus] = useState(false);
-  const initialState: State = { message: null, errors: {} };
-  const [state, formAction] = useActionState(signUp, initialState);
   const [email, setEmail] = useState("");
   const [loader, setLoader] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -44,26 +28,18 @@ export default function AuthForm({ type }: { type: string }) {
     setLetter(letter);
   };
 
-  useEffect(() => {
-    if (state.message === "success") {
-      router.push("/dashboard");
-    } else if (
-      state.message === "login, Already have an account, Redirecting ..."
-    ) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoader(true);
+    setTimeout(() => {
       setLoader(false);
-      const timeoutId = setTimeout(() => {
-        router.push("/en_GB/login");
-      }, 1500);
-      return () => clearTimeout(timeoutId);
-    }
-    if (state?.errors) {
-      setLoader(false);
-    }
-  }, [state.message, state.errors, router]);
+      window.location.href = "/dashboard";
+    }, 1000);
+  };
 
   return (
     <form
-      action={formAction}
+      onSubmit={handleSubmit}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
@@ -213,15 +189,6 @@ export default function AuthForm({ type }: { type: string }) {
               setEmail(e.target.value);
             }}
           />
-          {state?.errors?.email &&
-            state.errors.email.map((error) => {
-              return (
-                <p key={error} className="text-xs text-red-500 text-start">
-                  {" "}
-                  {error}
-                </p>
-              );
-            })}
         </label>
 
         {status && (
@@ -237,18 +204,6 @@ export default function AuthForm({ type }: { type: string }) {
                   autoFocus
                   name="firstname"
                 />
-                {state?.errors?.firstname &&
-                  state.errors.firstname.map((error) => {
-                    return (
-                      <p
-                        key={error}
-                        className="text-xs text-red-500 text-start"
-                      >
-                        {" "}
-                        {error}
-                      </p>
-                    );
-                  })}
               </label>{" "}
               <label className="block">
                 <span className="block text-start text-xs font-medium text-stone-500">
@@ -259,18 +214,6 @@ export default function AuthForm({ type }: { type: string }) {
                   className="mt-1 block w-full px-3 py-2 hover:bg-[#f7f5f2] hover:border-black    border border-slate-300 text-sm  placeholder-stone-400 "
                   name="lastname"
                 />
-                {state?.errors?.lastname &&
-                  state.errors.lastname.map((error) => {
-                    return (
-                      <p
-                        key={error}
-                        className="text-xs text-red-500 text-start"
-                      >
-                        {" "}
-                        {error}
-                      </p>
-                    );
-                  })}
               </label>
             </div>
             <label className="block">
@@ -357,16 +300,6 @@ export default function AuthForm({ type }: { type: string }) {
                   </span>
                 </div>
               </div>
-
-              {state?.errors?.password &&
-                state.errors.password.map((error) => {
-                  return (
-                    <p key={error} className="text-xs text-red-500 text-start">
-                      {" "}
-                      {error}
-                    </p>
-                  );
-                })}
             </label>
             {visible && (
               <>
@@ -600,9 +533,6 @@ export default function AuthForm({ type }: { type: string }) {
               )}
             </button>
           </>
-        )}
-        {state?.message && (
-          <p className="text-xs text-red-500 ">{state.message}</p>
         )}
         <div className="w-full ">
           <Link href="/en_GB/login">
