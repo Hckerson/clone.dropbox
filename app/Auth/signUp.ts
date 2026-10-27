@@ -4,8 +4,9 @@ import { State } from "../en_GB/register/auth_Form2";
 import { RegisterSchema } from "../lib/definitions";
 import { neon } from "@neondatabase/serverless";
 import { createSession } from "../lib/session";
-const sql = neon(`${process.env.DATABASE_URL}`);
 import "dotenv/config";
+
+const sql = process.env.DATABASE_URL ? neon(`${process.env.DATABASE_URL}`) : null;
 
 export async function signUp(state: State = {}, formData: FormData) {
   console.log(state)
@@ -23,10 +24,17 @@ export async function signUp(state: State = {}, formData: FormData) {
   }
   const { email, password, firstname, lastname } = validatedFields.data;
   const hashedPassword = await bcrypt.hash(password, 10);
+
+  if (!sql) {
+    return {
+      message: "Database connection error",
+    };
+  }
+
   try {
     const response = await sql(
       `
-    SELECT * FROM users 
+    SELECT * FROM users
     WHERE email = $1`,
       [email]
     );

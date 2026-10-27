@@ -4,8 +4,9 @@ import { State } from "../lib/definitions";
 import { LoginSchema } from "../lib/definitions";
 import { createSession } from "../lib/session";
 import { neon } from "@neondatabase/serverless";
-const sql = neon(`${process.env.DATABASE_URL}`);
 import "dotenv/config";
+
+const sql = process.env.DATABASE_URL ? neon(`${process.env.DATABASE_URL}`) : null;
 
 export async function login(prevState: State = {}, formData: FormData) {
   console.log(prevState)
@@ -22,6 +23,13 @@ export async function login(prevState: State = {}, formData: FormData) {
   }
 
   const { email, password } = validatedFields.data;
+
+  if (!sql) {
+    return {
+      message: "Database connection error",
+    };
+  }
+
   try {
     const response = await sql(
       `
